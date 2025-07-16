@@ -41,7 +41,7 @@ jobs:
       - name: cargo test --locked
         run: |
           sudo apt-get update -y && sudo apt-get install -y libgpgme-dev
-          cargo test --locked --all-features --all-targets
+          cargo test --locked --all-features --all-targets -- --test-threads 1
       # https://github.com/rust-lang/cargo/issues/6669
       - name: cargo test --doc
         run: |
@@ -87,7 +87,8 @@ jobs:
       - name: cargo test
         run: | 
           sudo apt-get update -y && sudo apt-get install -y libgpgme-dev
-          cargo test --locked --all-features --all-targets
+          cargo test --locked --all-features --all-targets -- --test-threads 1
+
   os-check:
     # run cargo test on mac and windows
     runs-on: ${{ matrix.os }}
@@ -113,7 +114,8 @@ jobs:
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
       - name: cargo build
-        run: cargo build --locked --all-features --all-targets
+        run: cargo build --locked --all-features --all-targets -- --test-threads 1
+
   coverage:
     runs-on: ubicloud-standard-2
     name: ubuntu / stable / coverage / ${{ matrix.features }}
@@ -137,9 +139,11 @@ jobs:
         run: |
           sudo apt-get update -y && sudo apt-get install -y libgpgme-dev
           if [ "${{ matrix.features }}" == "default" ]; then
-            cargo llvm-cov --locked --lcov --output-path lcov-${{ matrix.features }}.info
+            cargo llvm-cov --locked --lcov --output-path lcov-${{ matrix.features }}.info -- --test-threads 1
+
           else
-            cargo llvm-cov --locked --features "${{ matrix.features }}" --lcov --output-path lcov-${{ matrix.features }}.info
+            cargo llvm-cov --locked --features "${{ matrix.features }}" --lcov --output-path lcov-${{ matrix.features }}.info -- --test-threads 1
+
           fi
       - name: Record Rust version
         run: echo "RUST=$(rustc --version)" >> "$GITHUB_ENV"
