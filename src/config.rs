@@ -42,7 +42,7 @@ pub struct FireblocksConfig {
     pub api_key: String,
     pub url: String,
     pub secret_path: Option<PathBuf>,
-    pub secret_key: Option<String>,
+    pub secret: Option<String>,
     #[serde(rename = "display")]
     pub display_config: DisplayConfig,
     pub signer: Signer,
@@ -51,7 +51,7 @@ pub struct FireblocksConfig {
 impl FireblocksConfig {
     pub fn get_key(&self) -> Result<Vec<u8>> {
         // Try secret_key first (simpler case)
-        if let Some(ref key) = self.secret_key {
+        if let Some(ref key) = self.secret {
             return Ok(key.clone().into_bytes());
         }
 
@@ -152,10 +152,10 @@ mod tests {
         assert_eq!("https://sandbox-api.fireblocks.io/v1", cfg.url);
         assert_eq!(OutputFormat::Table, cfg.display_config.output);
         unsafe {
-            std::env::set_var("FIREBLOCKS_SECRET_KEY", "override");
+            std::env::set_var("FIREBLOCKS_SECRET", "override");
         }
         let cfg = FireblocksConfig::new(b, &[])?;
-        assert!(cfg.secret_key.is_some());
+        assert!(cfg.secret.is_some());
         assert_eq!(String::from("override").as_bytes(), cfg.get_key()?);
         if let Some(ref k) = cfg.secret_path {
             assert_eq!(PathBuf::from("examples/test.pem"), *k);
@@ -185,8 +185,9 @@ mod tests {
         let b = "examples/default.toml";
         let cfg_override = "examples/embedded.toml";
         let cfg = FireblocksConfig::new(b, &[cfg_override])?;
-        assert!(cfg.secret_key.is_some());
-        assert_eq!(String::from("i am a secret").as_bytes(), cfg.get_key()?);
+        assert!(cfg.secret.is_some());
+        let secret = cfg.secret.unwrap();
+        assert_eq!(String::from("i am a secret").as_bytes(), secret.as_bytes());
         Ok(())
     }
 }
