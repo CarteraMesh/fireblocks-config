@@ -1,0 +1,29 @@
+[package]
+name = "fireblocks-config"
+version = "0.1.0"
+edition = "2024"
+description = "TOML configuration for fireblocks SDK"
+repository = "https://github.com/CarteraMesh/fireblocks-config"
+license = "MIT"
+authors = ["gh@cartera-mesh.com"]
+documentation = "https://docs.rs/CarteraMesh"
+homepage = "https://github.com/CarteraMesh/fireblocks-config"
+keywords = ["fireblocks", "blockchain", "crypto"]
+categories = ["cryptography::cryptocurrencies" , "config"]
+readme = "README.md"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+gpg = ["gpgme"]
+
+[dependencies]
+gpgme = { version = "0.11", optional = true }
+config = { version = "0.15" }
+anyhow = { version = "1"}
+dirs = { version = "6" }
+thiserror = { version = "2" }
+tracing = { version = "0.1" }
+serde = { version = "1"}
+serde_json = {version = "1" }
+clap = { version = "4", features = ["derive"]}
