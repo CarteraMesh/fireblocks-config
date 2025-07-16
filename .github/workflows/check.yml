@@ -98,6 +98,7 @@ jobs:
     # which is required for feature unification
     runs-on: ubicloud-standard-2
     name: ubuntu / stable / features
+    if: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -109,7 +110,9 @@ jobs:
       # intentionally no target specifier; see https://github.com/jonhoo/rust-ci-conf/pull/4
       # --feature-powerset runs for every combination of features
       - name: cargo hack
-        run: cargo hack --feature-powerset check
+        run: |
+          apt-get update -y && apt-get install -y libgpgme-dev
+          cargo hack --feature-powerset check
 
   udeps:
     runs-on: ubicloud-standard-2

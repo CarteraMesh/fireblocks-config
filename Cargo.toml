@@ -20,10 +20,12 @@ gpg = ["gpgme"]
 [dependencies]
 gpgme = { version = "0.11", optional = true }
 config = { version = "0.15" }
-anyhow = { version = "1"}
 dirs = { version = "6" }
 thiserror = { version = "2" }
 tracing = { version = "0.1" }
 serde = { version = "1"}
 serde_json = {version = "1" }
 clap = { version = "4", features = ["derive"]}
+
+[dev-dependencies]
+anyhow = { version = "1"}
