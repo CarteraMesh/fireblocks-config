@@ -1,0 +1,12 @@
+api_key = "blah"
+secret_path = "examples/test.pem"
+url = "https://sandbox-api.fireblocks.io/v1"
+
+[display]
+output = "Table"
+
+[signer]
+poll_timeout = "120"
+poll_interval = "5"
+vault = "0"
+dev = true
