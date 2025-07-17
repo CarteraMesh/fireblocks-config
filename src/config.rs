@@ -1,5 +1,7 @@
 #[cfg(feature = "gpg")]
 use gpgme::{Context, Protocol};
+#[cfg(feature = "xdg")]
+use microxdg::XdgApp;
 use {
     crate::{Error, OutputFormat, Result},
     config::{Config, File, FileFormat},
@@ -29,11 +31,21 @@ pub struct DisplayConfig {
     pub output: OutputFormat,
 }
 
+fn default_poll_timeout() -> u64 {
+    180
+}
+
+fn default_poll_interval() -> u64 {
+    5
+}
+
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Signer {
-    pub poll_timeout: Option<u16>,
-    pub poll_interval: Option<u16>,
-    /// The vault id, default is "0"
+    #[serde(default = "default_poll_timeout")]
+    pub poll_timeout: u64,
+    #[serde(default = "default_poll_interval")]
+    pub poll_interval: u64,
+    /// The vault id
     pub vault: String,
 }
 
@@ -66,7 +78,7 @@ impl FireblocksConfig {
         #[cfg(feature = "gpg")]
         if expanded_path
             .extension()
-            .map_or(false, |ext| ext.eq_ignore_ascii_case("gpg"))
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("gpg"))
         {
             return self.decrypt_gpg_file(&expanded_path);
         }
@@ -124,6 +136,55 @@ impl FireblocksConfig {
     ) -> Result<Self> {
         let override_vec: Vec<P> = overrides.into_iter().collect();
         Self::new(cfg, &override_vec)
+    }
+
+    /// Load configuration from XDG config directory
+    /// (~/.config/fireblocks/default.toml)
+    #[cfg(feature = "xdg")]
+    pub fn init() -> Result<Self> {
+        Self::init_with_profiles(&[])
+    }
+
+    /// Load configuration from XDG config directory with additional profile
+    /// overrides
+    ///
+    /// Loads ~/.config/fireblocks/default.toml as base config, then applies
+    /// each profile from ~/.config/fireblocks/{profile}.toml in order.
+    ///
+    /// # Example
+    /// ```rust,no_run
+    /// use fireblocks_config::FireblocksConfig;
+    ///
+    /// // Load default config only
+    /// let config = FireblocksConfig::init()?;
+    ///
+    /// // Load default + production profile
+    /// let config = FireblocksConfig::init_with_profiles(&["production"])?;
+    ///
+    /// // Load default + staging + production (layered)
+    /// let config = FireblocksConfig::init_with_profiles(&["staging", "production"])?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    #[cfg(feature = "xdg")]
+    pub fn init_with_profiles(profiles: &[&str]) -> Result<Self> {
+        let xdg_app = XdgApp::new("fireblocks")?;
+        let default_config = xdg_app.app_config_file("default.toml")?;
+
+        tracing::debug!("loading default config: {}", default_config.display());
+
+        let mut profile_configs = Vec::new();
+        for profile in profiles {
+            let profile_file = format!("{profile}.toml");
+            let profile_config = xdg_app.app_config_file(&profile_file)?;
+            if profile_config.exists() {
+                tracing::debug!("adding profile config: {}", profile_config.display());
+                profile_configs.push(profile_config);
+            } else {
+                tracing::warn!("profile config not found: {}", profile_config.display());
+            }
+        }
+
+        Self::new(default_config, &profile_configs)
     }
 }
 
@@ -192,5 +253,30 @@ mod tests {
         let secret = cfg.secret.unwrap();
         assert_eq!(String::from("i am a secret").as_bytes(), secret.as_bytes());
         Ok(())
+    }
+
+    #[cfg(feature = "xdg")]
+    #[test]
+    fn test_xdg_init() {
+        // This test just ensures the XDG methods compile and can be called
+        // In a real environment, it would try to load from ~/.config/fireblocks/
+        match FireblocksConfig::init() {
+            Ok(_) => {
+                // Config loaded successfully from XDG directory
+            }
+            Err(_) => {
+                // Expected if no config exists in XDG directory
+                // This is fine for the compilation test
+            }
+        }
+
+        match FireblocksConfig::init_with_profiles(&["test", "production"]) {
+            Ok(_) => {
+                // Config loaded successfully
+            }
+            Err(_) => {
+                // Expected if no config exists
+            }
+        }
     }
 }
