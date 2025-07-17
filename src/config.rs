@@ -9,6 +9,8 @@ use {
     std::{
         fs,
         path::{Path, PathBuf},
+        str::FromStr,
+        time::Duration,
     },
 };
 
@@ -31,20 +33,37 @@ pub struct DisplayConfig {
     pub output: OutputFormat,
 }
 
-fn default_poll_timeout() -> u64 {
-    180
+// Serde deserializer wrapper for parse_duration
+fn deserialize_duration<'de, D>(deserializer: D) -> std::result::Result<Duration, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let seconds = u64::from_str(&s)
+        .map_err(|_| serde::de::Error::custom(format!("Invalid duration: {s}")))?;
+    Ok(Duration::from_secs(seconds))
 }
 
-fn default_poll_interval() -> u64 {
-    5
+fn default_poll_timeout() -> Duration {
+    Duration::from_secs(180)
+}
+
+fn default_poll_interval() -> Duration {
+    Duration::from_secs(5)
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Signer {
-    #[serde(default = "default_poll_timeout")]
-    pub poll_timeout: u64,
-    #[serde(default = "default_poll_interval")]
-    pub poll_interval: u64,
+    #[serde(
+        default = "default_poll_timeout",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub poll_timeout: Duration,
+    #[serde(
+        default = "default_poll_interval",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub poll_interval: Duration,
     /// The vault id
     pub vault: String,
 }
@@ -142,7 +161,7 @@ impl FireblocksConfig {
     /// (~/.config/fireblocks/default.toml)
     #[cfg(feature = "xdg")]
     pub fn init() -> Result<Self> {
-        Self::init_with_profiles(&[])
+        Self::init_with_profiles::<&str>(&[])
     }
 
     /// Load configuration from XDG config directory with additional profile
@@ -166,7 +185,7 @@ impl FireblocksConfig {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[cfg(feature = "xdg")]
-    pub fn init_with_profiles(profiles: &[&str]) -> Result<Self> {
+    pub fn init_with_profiles<S: AsRef<str>>(profiles: &[S]) -> Result<Self> {
         let xdg_app = XdgApp::new("fireblocks")?;
         let default_config = xdg_app.app_config_file("default.toml")?;
 
@@ -174,7 +193,7 @@ impl FireblocksConfig {
 
         let mut profile_configs = Vec::new();
         for profile in profiles {
-            let profile_file = format!("{profile}.toml");
+            let profile_file = format!("{}.toml", profile.as_ref());
             let profile_config = xdg_app.app_config_file(&profile_file)?;
             if profile_config.exists() {
                 tracing::debug!("adding profile config: {}", profile_config.display());
@@ -255,6 +274,18 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn test_duration_parsing() -> anyhow::Result<()> {
+        let b = "examples/default.toml";
+        let cfg = FireblocksConfig::new(b, &[])?;
+
+        // Verify that string values in TOML are parsed as Duration
+        assert_eq!(cfg.signer.poll_timeout, Duration::from_secs(120));
+        assert_eq!(cfg.signer.poll_interval, Duration::from_secs(5));
+
+        Ok(())
+    }
+
     #[cfg(feature = "xdg")]
     #[test]
     fn test_xdg_init() {
@@ -270,7 +301,19 @@ mod tests {
             }
         }
 
+        // Test with &str slice
         match FireblocksConfig::init_with_profiles(&["test", "production"]) {
+            Ok(_) => {
+                // Config loaded successfully
+            }
+            Err(_) => {
+                // Expected if no config exists
+            }
+        }
+
+        // Test with Vec<String> to verify flexibility
+        let profiles: Vec<String> = vec!["staging".to_string(), "production".to_string()];
+        match FireblocksConfig::init_with_profiles(&profiles) {
             Ok(_) => {
                 // Config loaded successfully
             }

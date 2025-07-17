@@ -18,7 +18,7 @@ concurrency:
 name: test
 jobs:
   required:
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: ubuntu / ${{ matrix.toolchain }}
     strategy:
       matrix:
@@ -69,7 +69,7 @@ jobs:
     # Cargo build order. See also
     # https://github.com/jonhoo/fantoccini/blob/fde336472b712bc7ebf5b4e772023a7ba71b2262/Cargo.toml#L47-L49.
     # This action is run on ubuntu with the stable toolchain, as it is not expected to fail
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: ubuntu / stable / minimal-versions
     if: false
     steps:
@@ -117,7 +117,7 @@ jobs:
         run: cargo build --locked --all-features --all-targets -- --test-threads 1
 
   coverage:
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: ubuntu / stable / coverage / ${{ matrix.features }}
     strategy:
       fail-fast: false
