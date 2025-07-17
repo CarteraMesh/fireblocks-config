@@ -26,4 +26,8 @@ pub enum Error {
     #[cfg(feature = "gpg")]
     #[error(transparent)]
     GpgError(#[from] gpgme::Error),
+
+    #[cfg(feature = "xdg")]
+    #[error(transparent)]
+    XdgError(#[from] microxdg::XdgError),
 }

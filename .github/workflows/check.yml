@@ -49,6 +49,8 @@ jobs:
         toolchain: [stable, beta]
         features:
           - "default"
+          - "gpg"
+          - "xdg"
     steps:
       - uses: actions/checkout@v4
         with:
