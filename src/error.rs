@@ -23,6 +23,9 @@ pub enum Error {
         path: String,
     },
 
+    #[error("Invalid Duration {0}")]
+    InvalidDuration(String),
+
     #[cfg(feature = "gpg")]
     #[error(transparent)]
     GpgError(#[from] gpgme::Error),

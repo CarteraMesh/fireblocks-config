@@ -9,7 +9,8 @@ jobs:
 
   publish-cargo:
     name: Publishing to Cargo
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER }}
+    if: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

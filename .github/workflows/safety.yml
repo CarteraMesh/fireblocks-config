@@ -17,7 +17,7 @@ name: safety
 jobs:
   sanitizers:
     if: false
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,7 +54,7 @@ jobs:
           RUSTFLAGS: "-Z sanitizer=leak"
   miri:
     if: false
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     steps:
       - uses: actions/checkout@v4
         with:

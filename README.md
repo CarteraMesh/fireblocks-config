@@ -146,16 +146,23 @@ fireblocks-config = { version = "0.1", features = ["xdg"] }
 With XDG support enabled, you can load configs from standard locations:
 
 ```rust,no_run
+# #[cfg(feature = "xdg")]
+# {
 use fireblocks_config::FireblocksConfig;
 
 // Load from ~/.config/fireblocks/default.toml
 let config = FireblocksConfig::init()?;
 
-// Load default + production profile from ~/.config/fireblocks/production.toml
+// Load default + production profile (using &str)
 let config = FireblocksConfig::init_with_profiles(&["production"])?;
+
+// Load with Vec<String> for dynamic profiles
+let profiles: Vec<String> = vec!["staging".to_string(), "production".to_string()];
+let config = FireblocksConfig::init_with_profiles(&profiles)?;
 
 // Layer multiple profiles: default -> staging -> production
 let config = FireblocksConfig::init_with_profiles(&["staging", "production"])?;
+# }
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 

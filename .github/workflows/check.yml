@@ -23,7 +23,7 @@ concurrency:
 name: check
 jobs:
   fmt:
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: nightly fmt
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
         run: |
             cargo +nightly fmt --check --all
   clippy:
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: ${{ matrix.toolchain }} / clippy / ${{ matrix.features }}
     permissions:
       contents: read
@@ -67,7 +67,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           clippy_flags: ${{ matrix.features != 'default' && format('--features {0}', matrix.features) || '' }}
   semver:
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: semver
     if: true
     steps:
@@ -98,7 +98,7 @@ jobs:
   hack:
     # cargo-hack checks combinations of feature flags to ensure that features are all additive
     # which is required for feature unification
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: ubuntu / stable / features
     if: true
     steps:
@@ -117,7 +117,7 @@ jobs:
           cargo hack --feature-powerset check
 
   udeps:
-    runs-on: ubicloud-standard-2
+    runs-on: ${{ vars.RUNNER }}
     name: udeps
     steps:
       - uses: actions/checkout@v4
