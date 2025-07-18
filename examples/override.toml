@@ -1,3 +1,4 @@
 api_key = "production"
 url = "https://api.fireblocks.io/v1"
 debug = true
+mainnet = true
