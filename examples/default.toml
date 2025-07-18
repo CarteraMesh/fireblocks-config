@@ -10,3 +10,8 @@ poll_timeout = "120"
 poll_interval = "5"
 vault = "0"
 dev = true
+
+[extra]
+rpc_url = "https://rpc.com"
+fail_fast = false
+timeout = 40
