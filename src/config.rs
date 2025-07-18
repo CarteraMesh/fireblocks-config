@@ -286,6 +286,16 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn test_duration_defaults() -> anyhow::Result<()> {
+        let b = "examples/notime.toml";
+        let cfg = FireblocksConfig::new(b, &[])?;
+        // Verify that string values in TOML are parsed as Duration
+        assert_eq!(cfg.signer.poll_timeout, default_poll_timeout());
+        assert_eq!(cfg.signer.poll_interval, default_poll_interval());
+        Ok(())
+    }
+
     #[cfg(feature = "xdg")]
     #[test]
     fn test_xdg_init() {

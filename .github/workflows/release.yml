@@ -44,17 +44,27 @@ jobs:
         with:
           components: rustfmt
 
-      - name: Cache Cargo registry
+      - name: Cache Cargo registry and binaries
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            ~/.cargo/bin
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+            ${{ runner.os }}-cargo-
 
       - name: Install cargo-release
-        run: cargo install cargo-release
+        run: |
+          if ! command -v cargo-release &> /dev/null; then
+            echo "Installing cargo-release..."
+            cargo install cargo-release
+          else
+            echo "cargo-release already installed, skipping..."
+          fi
 
       - name: Configure Git
         run: |

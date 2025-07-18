@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/fireblocks-config.svg)](https://crates.io/crates/fireblocks-config)
 [![Docs.rs](https://docs.rs/fireblocks-config/badge.svg)](https://docs.rs/fireblocks-config)
-[![CI](https://github.com/CarteraMesh/fireblocks-config/workflows/CI/badge.svg)](https://github.com/CarteraMesh/fireblocks-config/actions)
+[![CI](https://github.com/CarteraMesh/fireblocks-config/workflows/test/badge.svg)](https://github.com/CarteraMesh/fireblocks-config/actions)
 [![Cov](https://codecov.io/github/CarteraMesh/fireblocks-config/graph/badge.svg?token=dILa1k9tlW)](https://codecov.io/github/CarteraMesh/fireblocks-config)
 
 ## Installation
