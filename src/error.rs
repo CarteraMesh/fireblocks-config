@@ -26,6 +26,9 @@ pub enum Error {
     #[error("Invalid Duration {0}")]
     InvalidDuration(String),
 
+    #[error("Key '{key}' not present in configuration")]
+    NotPresent { key: String },
+
     #[cfg(feature = "gpg")]
     #[error(transparent)]
     GpgError(#[from] gpgme::Error),

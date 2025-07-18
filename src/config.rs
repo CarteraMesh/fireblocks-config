@@ -7,6 +7,7 @@ use {
     config::{Config, File, FileFormat},
     serde::Deserialize,
     std::{
+        collections::HashMap,
         fs,
         path::{Path, PathBuf},
         str::FromStr,
@@ -14,7 +15,7 @@ use {
     },
 };
 
-fn expand_tilde(path: &str) -> PathBuf {
+pub(crate) fn expand_tilde(path: &str) -> PathBuf {
     if path.starts_with('~') {
         match dirs::home_dir() {
             Some(mut home) => {
@@ -44,11 +45,11 @@ where
     Ok(Duration::from_secs(seconds))
 }
 
-fn default_poll_timeout() -> Duration {
+pub(crate) fn default_poll_timeout() -> Duration {
     Duration::from_secs(180)
 }
 
-fn default_poll_interval() -> Duration {
+pub(crate) fn default_poll_interval() -> Duration {
     Duration::from_secs(5)
 }
 
@@ -77,9 +78,81 @@ pub struct FireblocksConfig {
     #[serde(rename = "display")]
     pub display_config: DisplayConfig,
     pub signer: Signer,
+    /// Arbitrary extra configuration values
+    #[serde(default)]
+    pub extra: HashMap<String, serde_json::Value>,
+    /// Enable debug mode
+    #[serde(default)]
+    pub debug: bool,
 }
 
 impl FireblocksConfig {
+    /// Get an extra configuration value as any deserializable type
+    pub fn get_extra<T, K>(&self, key: K) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned,
+        K: AsRef<str>,
+    {
+        let key_str = key.as_ref();
+        let value = self.extra.get(key_str).ok_or_else(|| Error::NotPresent {
+            key: key_str.to_string(),
+        })?;
+
+        serde_json::from_value(value.clone()).map_err(|e| {
+            Error::ConfigParseError(config::ConfigError::Message(format!(
+                "Failed to deserialize key '{key_str}': {e}"
+            )))
+        })
+    }
+
+    /// Get an extra configuration value as a Duration from seconds
+    ///
+    /// This function retrieves a numeric value from the extra configuration
+    /// and converts it to a `std::time::Duration` using
+    /// `Duration::from_secs()`.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The configuration key to look up (can be `&str`, `String`,
+    ///   etc.)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Duration)` - The duration value if the key exists and can be
+    ///   parsed as u64
+    /// * `Err(Error::NotPresent)` - If the key doesn't exist in the
+    ///   configuration
+    /// * `Err(Error::ConfigParseError)` - If the value cannot be deserialized
+    ///   as u64
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use {fireblocks_config::FireblocksConfig, std::time::Duration};
+    ///
+    /// let config = FireblocksConfig::new("config.toml", &[])?;
+    ///
+    /// // Get timeout as Duration (assuming config has: timeout = 30)
+    /// let timeout: Duration = config.get_extra_duration("timeout")?;
+    /// assert_eq!(timeout, Duration::from_secs(30));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_extra_duration<K>(&self, key: K) -> Result<Duration>
+    where
+        K: AsRef<str>,
+    {
+        let seconds: u64 = self.get_extra(key)?;
+        Ok(Duration::from_secs(seconds))
+    }
+
+    /// Check if an extra configuration key exists
+    pub fn has_extra<K>(&self, key: K) -> bool
+    where
+        K: AsRef<str>,
+    {
+        self.extra.contains_key(key.as_ref())
+    }
+
     pub fn get_key(&self) -> Result<Vec<u8>> {
         // Try secret_key first (simpler case)
         if let Some(ref key) = self.secret {
@@ -204,132 +277,5 @@ impl FireblocksConfig {
         }
 
         Self::new(default_config, &profile_configs)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use {super::*, std::path::PathBuf};
-
-    #[ignore]
-    #[test]
-    fn test_gpg_config() -> anyhow::Result<()> {
-        let b = "examples/config-gpg.toml";
-        let cfg = FireblocksConfig::new(b, &[])?;
-        cfg.get_key()?;
-        Ok(())
-    }
-
-    #[test]
-    fn test_config() -> anyhow::Result<()> {
-        let b = "examples/default.toml";
-        let cfg = FireblocksConfig::new(b, &[])?;
-        assert_eq!("blah", cfg.api_key);
-        assert!(cfg.secret_path.is_some());
-        if let Some(p) = cfg.secret_path.as_ref() {
-            assert_eq!(PathBuf::from("examples/test.pem"), *p);
-        }
-        assert_eq!("https://sandbox-api.fireblocks.io/v1", cfg.url);
-        assert_eq!(OutputFormat::Table, cfg.display_config.output);
-        unsafe {
-            std::env::set_var("FIREBLOCKS_SECRET", "override");
-        }
-        let cfg = FireblocksConfig::new(b, &[])?;
-        assert!(cfg.secret.is_some());
-        assert_eq!(String::from("override").as_bytes(), cfg.get_key()?);
-        if let Some(ref k) = cfg.secret_path {
-            assert_eq!(PathBuf::from("examples/test.pem"), *k);
-        }
-
-        assert_eq!(cfg.signer.vault, "0");
-        unsafe {
-            std::env::remove_var("FIREBLOCKS_SECRET");
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn test_config_override() -> anyhow::Result<()> {
-        let b = "examples/default.toml";
-        let cfg_override = "examples/override.toml";
-        let cfg = FireblocksConfig::with_overrides(b, vec![cfg_override])?;
-        assert_eq!("production", cfg.api_key);
-        assert!(cfg.secret_path.is_some());
-        if let Some(p) = cfg.secret_path.as_ref() {
-            assert_eq!(PathBuf::from("examples/test.pem"), *p);
-        }
-        assert_eq!("https://api.fireblocks.io/v1", cfg.url);
-        assert_eq!(OutputFormat::Table, cfg.display_config.output);
-        Ok(())
-    }
-
-    #[test]
-    fn test_embedded_key() -> anyhow::Result<()> {
-        let b = "examples/default.toml";
-        let cfg_override = "examples/embedded.toml";
-        let cfg = FireblocksConfig::new(b, &[cfg_override])?;
-        assert!(cfg.secret.is_some());
-        let secret = cfg.secret.unwrap();
-        assert_eq!(String::from("i am a secret").as_bytes(), secret.as_bytes());
-        Ok(())
-    }
-
-    #[test]
-    fn test_duration_parsing() -> anyhow::Result<()> {
-        let b = "examples/default.toml";
-        let cfg = FireblocksConfig::new(b, &[])?;
-
-        // Verify that string values in TOML are parsed as Duration
-        assert_eq!(cfg.signer.poll_timeout, Duration::from_secs(120));
-        assert_eq!(cfg.signer.poll_interval, Duration::from_secs(5));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_duration_defaults() -> anyhow::Result<()> {
-        let b = "examples/notime.toml";
-        let cfg = FireblocksConfig::new(b, &[])?;
-        // Verify that string values in TOML are parsed as Duration
-        assert_eq!(cfg.signer.poll_timeout, default_poll_timeout());
-        assert_eq!(cfg.signer.poll_interval, default_poll_interval());
-        Ok(())
-    }
-
-    #[cfg(feature = "xdg")]
-    #[test]
-    fn test_xdg_init() {
-        // This test just ensures the XDG methods compile and can be called
-        // In a real environment, it would try to load from ~/.config/fireblocks/
-        match FireblocksConfig::init() {
-            Ok(_) => {
-                // Config loaded successfully from XDG directory
-            }
-            Err(_) => {
-                // Expected if no config exists in XDG directory
-                // This is fine for the compilation test
-            }
-        }
-
-        // Test with &str slice
-        match FireblocksConfig::init_with_profiles(&["test", "production"]) {
-            Ok(_) => {
-                // Config loaded successfully
-            }
-            Err(_) => {
-                // Expected if no config exists
-            }
-        }
-
-        // Test with Vec<String> to verify flexibility
-        let profiles: Vec<String> = vec!["staging".to_string(), "production".to_string()];
-        match FireblocksConfig::init_with_profiles(&profiles) {
-            Ok(_) => {
-                // Config loaded successfully
-            }
-            Err(_) => {
-                // Expected if no config exists
-            }
-        }
     }
 }
