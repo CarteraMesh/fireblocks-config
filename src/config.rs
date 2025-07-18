@@ -84,6 +84,9 @@ pub struct FireblocksConfig {
     /// Enable debug mode
     #[serde(default)]
     pub debug: bool,
+
+    #[serde(default)]
+    pub mainnet: bool,
 }
 
 impl FireblocksConfig {

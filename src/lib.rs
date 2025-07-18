@@ -74,6 +74,7 @@ mod tests {
         assert_eq!("https://api.fireblocks.io/v1", cfg.url);
         assert_eq!(OutputFormat::Table, cfg.display_config.output);
         assert!(cfg.debug);
+        assert!(cfg.mainnet);
         Ok(())
     }
 
