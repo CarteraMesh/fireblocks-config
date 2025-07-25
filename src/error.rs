@@ -36,4 +36,8 @@ pub enum Error {
     #[cfg(feature = "xdg")]
     #[error(transparent)]
     XdgError(#[from] microxdg::XdgError),
+
+    #[cfg(feature = "xdg")]
+    #[error("Profile config not found: {0}")]
+    ProfileConfigNotFound(String),
 }
