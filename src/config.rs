@@ -275,7 +275,7 @@ impl FireblocksConfig {
                 tracing::debug!("adding profile config: {}", profile_config.display());
                 profile_configs.push(profile_config);
             } else {
-                tracing::warn!("profile config not found: {}", profile_config.display());
+                return Err(Error::ProfileConfigNotFound(profile_file));
             }
         }
 
