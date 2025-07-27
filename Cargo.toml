@@ -1,6 +1,6 @@
 [package]
 name = "fireblocks-config"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2024"
 description = "TOML configuration for fireblocks SDK"
 repository = "https://github.com/CarteraMesh/fireblocks-config"
