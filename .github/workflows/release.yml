@@ -40,7 +40,6 @@ jobs:
         with:
           cache-on-failure: "true"
           cache-all-crates: "true"
-          cache-workspace-crates: "true"
           workspaces: |
             . -> target
 
