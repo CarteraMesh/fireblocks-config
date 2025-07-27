@@ -9,7 +9,7 @@ authors = ["gh@cartera-mesh.com"]
 documentation = "https://docs.rs/fireblocks-config"
 homepage = "https://github.com/CarteraMesh/fireblocks-config"
 keywords = ["fireblocks", "blockchain", "crypto"]
-categories = ["cryptography::cryptocurrencies" , "config"]
+categories = ["cryptography::cryptocurrencies", "config"]
 readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -24,10 +24,10 @@ microxdg = { version = "0.2", optional = true }
 config = { version = "0.15" }
 dirs = { version = "6" }
 thiserror = { version = "2" }
-tracing = { version = "0.1" }
-serde = { version = "1"}
-serde_json = {version = "1" }
-clap = { version = "4", features = ["derive"]}
+serde = { version = "1" }
+serde_json = { version = "1" }
+clap = { version = "4", features = ["derive"] }
+log = { version = ">=0.3" }
 
 [dev-dependencies]
-anyhow = { version = "1"}
+anyhow = { version = "1" }

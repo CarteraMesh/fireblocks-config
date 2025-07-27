@@ -26,7 +26,12 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
+      - uses: ubicloud/rust-cache@v2
+        with:
+          cache-on-failure: "true"
+          cache-all-crates: "true"
+          workspaces: |
+            . -> target
       - name: Get current branch
         id: branch
         run: |
@@ -41,13 +46,6 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-
-      - uses: ubicloud/rust-cache@v2
-        with:
-          cache-on-failure: "true"
-          cache-all-crates: "true"
-          workspaces: |
-            . -> target
 
       - name: Install cargo-release
         run: cargo install cargo-release
