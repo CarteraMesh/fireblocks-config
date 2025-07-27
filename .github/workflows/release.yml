@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version_bump:
-        description: 'Version bump type'
+        description: "Version bump type"
         required: true
         type: choice
         options:
@@ -13,7 +13,7 @@ on:
           - major
         default: patch
       dry_run:
-        description: 'Dry run (do not actually publish)'
+        description: "Dry run (do not actually publish)"
         required: false
         type: boolean
         default: false
@@ -28,13 +28,21 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ubicloud/rust-cache@v2
+        with:
+          cache-on-failure: "true"
+          cache-all-crates: "true"
+          cache-workspace-crates: "true"
+          workspaces: |
+            . -> target
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -43,19 +51,6 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-
-      - name: Cache Cargo registry and binaries
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.cargo/bin
-            target
-          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-release-
-            ${{ runner.os }}-cargo-
 
       - name: Install cargo-release
         run: |
@@ -77,10 +72,10 @@ jobs:
           # Get current version from Cargo.toml
           CURRENT_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          
+
           # Parse version components
           IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
-          
+
           # Calculate new version based on bump type
           case "${{ inputs.version_bump }}" in
             "major")
@@ -93,7 +88,7 @@ jobs:
               NEW_VERSION="$major.$minor.$((patch + 1))"
               ;;
           esac
-          
+
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "📦 Current version: $CURRENT_VERSION"
           echo "🚀 New version: $NEW_VERSION (${{ inputs.version_bump }} bump)"
@@ -133,9 +128,9 @@ jobs:
           name: Release v${{ steps.version.outputs.new_version }}
           body: |
             ## Changes in v${{ steps.version.outputs.new_version }}
-            
+
             **Version bump:** ${{ inputs.version_bump }} (from v${{ steps.version.outputs.current_version }})
-            
+
             See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
           draft: false
           prerelease: false

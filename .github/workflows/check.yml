@@ -129,7 +129,7 @@ jobs:
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
+        uses: ubicloud/rust-cache@v2
         with:
           key: nightly-udeps
       - name: Install cargo-udeps

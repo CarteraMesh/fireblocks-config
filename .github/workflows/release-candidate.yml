@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Dry run (do not actually publish)'
+        description: "Dry run (do not actually publish)"
         required: false
         type: boolean
         default: false
@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,14 +42,13 @@ jobs:
         with:
           components: rustfmt
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
+      - uses: ubicloud/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          cache-on-failure: "true"
+          cache-all-crates: "true"
+          cache-workspace-crates: "true"
+          workspaces: |
+            . -> target
 
       - name: Install cargo-release
         run: cargo install cargo-release
@@ -65,11 +64,11 @@ jobs:
           # Get current version from Cargo.toml
           CURRENT_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          
+
           # Get git short SHA
           GIT_SHORT_SHA=$(git rev-parse --short HEAD)
           echo "git_sha=$GIT_SHORT_SHA" >> $GITHUB_OUTPUT
-          
+
           # Parse version components (strip any existing RC/SHA suffixes)
           if [[ "$CURRENT_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
             major=${BASH_REMATCH[1]}
@@ -80,14 +79,14 @@ jobs:
             echo "❌ Unable to parse version: $CURRENT_VERSION"
             exit 1
           fi
-          
+
           # Create new RC version with format: major.minor.patch-rc-$GIT_SHORT_SHA
           NEW_VERSION="$major.$minor.$patch-rc-$GIT_SHORT_SHA"
-           
+
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "📦 Current version: $CURRENT_VERSION"
           echo "🔗 Git SHA: $GIT_SHORT_SHA"
-          echo "🚀 New RC version: $NEW_VERSION" 
+          echo "🚀 New RC version: $NEW_VERSION"
 
       - name: Run basic checks
         run: |
@@ -121,11 +120,11 @@ jobs:
           name: Release Candidate v${{ steps.version.outputs.new_version }}
           body: |
             ## 🧪 Release Candidate v${{ steps.version.outputs.new_version }}
-            
-            **Version bump:** RC from v${{ steps.version.outputs.current_version }})  
-            **Published from branch:** `${{ steps.branch.outputs.name }}`  
+
+            **Version bump:** RC from v${{ steps.version.outputs.current_version }})
+            **Published from branch:** `${{ steps.branch.outputs.name }}`
             **Git commit:** `${{ steps.version.outputs.git_sha }}`
-            
+
             ⚠️ **This is a release candidate.** It may contain bugs and is not recommended for production use.
           draft: false
           prerelease: true
