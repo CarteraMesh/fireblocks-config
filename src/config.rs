@@ -75,7 +75,7 @@ pub struct FireblocksConfig {
     pub url: String,
     pub secret_path: Option<PathBuf>,
     pub secret: Option<String>,
-    #[serde(rename = "display")]
+    #[serde(rename = "display", default)]
     pub display_config: DisplayConfig,
     pub signer: Signer,
     /// Arbitrary extra configuration values
