@@ -24,7 +24,7 @@ microxdg = { version = "0.2", optional = true }
 config = { version = "0.15" }
 dirs = { version = "6" }
 thiserror = { version = "2" }
-serde = { version = "1" }
+serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 clap = { version = "4", features = ["derive"] }
 log = { version = ">=0.3" }
