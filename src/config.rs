@@ -67,6 +67,9 @@ pub struct Signer {
     pub poll_interval: Duration,
     /// The vault id
     pub vault: String,
+    /// Whether to sign only and NOT broadcast message
+    #[serde(default)]
+    pub sign_only: bool,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]

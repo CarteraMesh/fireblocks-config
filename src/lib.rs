@@ -55,6 +55,7 @@ mod tests {
         }
 
         assert_eq!(cfg.signer.vault, "0");
+        assert!(!cfg.signer.sign_only);
         unsafe {
             std::env::remove_var("FIREBLOCKS_SECRET");
         }
