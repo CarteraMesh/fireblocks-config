@@ -53,7 +53,11 @@ pub(crate) fn default_poll_interval() -> Duration {
     Duration::from_secs(5)
 }
 
-#[derive(Clone, Debug, Default, Deserialize)]
+pub(crate) fn default_broadcast() -> bool {
+    false
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct Signer {
     #[serde(
         default = "default_poll_timeout",
@@ -67,9 +71,20 @@ pub struct Signer {
     pub poll_interval: Duration,
     /// The vault id
     pub vault: String,
-    /// Whether to sign only and NOT broadcast message
-    #[serde(default)]
-    pub sign_only: bool,
+    /// If true, Fireblocks will broadcast the transaction
+    #[serde(default = "default_broadcast")]
+    pub broadcast: bool,
+}
+
+impl Default for Signer {
+    fn default() -> Self {
+        Self {
+            poll_timeout: default_poll_timeout(),
+            poll_interval: default_poll_interval(),
+            vault: String::new(),
+            broadcast: default_broadcast(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
