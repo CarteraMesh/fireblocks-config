@@ -24,6 +24,14 @@ mod tests {
         std::{path::PathBuf, time::Duration},
     };
 
+    #[test]
+    fn test_signer_config_default() -> anyhow::Result<()> {
+        let cfg = super::Signer::default();
+        assert!(!cfg.broadcast);
+        assert_eq!(cfg.vault.len(), 0);
+        Ok(())
+    }
+
     #[ignore]
     #[test]
     fn test_gpg_config() -> anyhow::Result<()> {
@@ -55,7 +63,7 @@ mod tests {
         }
 
         assert_eq!(cfg.signer.vault, "0");
-        assert!(!cfg.signer.sign_only);
+        assert!(!cfg.signer.broadcast);
         unsafe {
             std::env::remove_var("FIREBLOCKS_SECRET");
         }
