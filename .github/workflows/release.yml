@@ -9,13 +9,14 @@ on:
         type: string
 
 jobs:
-  make-release-pr:
-    permissions:
-      pull-requests: write
-      contents: write
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -25,7 +26,13 @@ jobs:
         with:
           tool: cargo-release
 
-      - uses: cargo-bins/release-pr@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          version: ${{ inputs.version }}
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Release
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cargo release --execute --no-confirm ${{ inputs.version }}
