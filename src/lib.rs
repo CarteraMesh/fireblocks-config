@@ -167,7 +167,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(feature = "xdg")]
     #[test]
     fn test_xdg_init() {
         // This test just ensures the XDG methods compile and can be called

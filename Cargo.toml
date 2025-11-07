@@ -16,11 +16,9 @@ readme = "README.md"
 [features]
 default = []
 gpg = ["gpgme"]
-xdg = ["microxdg"]
 
 [dependencies]
 gpgme = { version = "0.11", optional = true }
-microxdg = { version = "0.2", optional = true }
 config = { version = "0.15" }
 dirs = { version = "6" }
 thiserror = { version = "2" }

@@ -2,8 +2,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("config not found {path}")]
-    ConfigNotFound { path: String },
+    #[error("config not found {0}")]
+    ConfigNotFound(String),
 
     #[error(transparent)]
     ConfigParseError(#[from] config::ConfigError),
@@ -33,11 +33,9 @@ pub enum Error {
     #[error(transparent)]
     GpgError(#[from] gpgme::Error),
 
-    #[cfg(feature = "xdg")]
-    #[error(transparent)]
-    XdgError(#[from] microxdg::XdgError),
+    #[error("XDG config directory not found")]
+    XdgConfigNotFound,
 
-    #[cfg(feature = "xdg")]
     #[error("Profile config not found: {0}")]
     ProfileConfigNotFound(String),
 }
