@@ -1,7 +1,5 @@
 #[cfg(feature = "gpg")]
 use gpgme::{Context, Protocol};
-#[cfg(feature = "xdg")]
-use microxdg::XdgApp;
 use {
     crate::{Error, OutputFormat, Result},
     config::{Config, File, FileFormat},
@@ -253,7 +251,6 @@ impl FireblocksConfig {
 
     /// Load configuration from XDG config directory
     /// (~/.config/fireblocks/default.toml)
-    #[cfg(feature = "xdg")]
     pub fn init() -> Result<Self> {
         Self::init_with_profiles::<&str>(&[])
     }
@@ -278,17 +275,23 @@ impl FireblocksConfig {
     /// let config = FireblocksConfig::init_with_profiles(&["staging", "production"])?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    #[cfg(feature = "xdg")]
     pub fn init_with_profiles<S: AsRef<str>>(profiles: &[S]) -> Result<Self> {
-        let xdg_app = XdgApp::new("fireblocks")?;
-        let default_config = xdg_app.app_config_file("default.toml")?;
+        let config_dir = dirs::config_dir().ok_or(Error::XdgConfigNotFound)?;
+        let fireblocks_dir = config_dir.join("fireblocks");
+        let default_config = fireblocks_dir.join("default.toml");
+
+        if !default_config.exists() {
+            return Err(Error::ConfigNotFound(
+                default_config.to_string_lossy().to_string(),
+            ));
+        }
 
         log::debug!("loading default config: {}", default_config.display());
 
         let mut profile_configs = Vec::new();
         for profile in profiles {
             let profile_file = format!("{}.toml", profile.as_ref());
-            let profile_config = xdg_app.app_config_file(&profile_file)?;
+            let profile_config = fireblocks_dir.join(&profile_file);
             if profile_config.exists() {
                 log::debug!("adding profile config: {}", profile_config.display());
                 profile_configs.push(profile_config);
