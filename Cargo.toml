@@ -21,10 +21,12 @@ gpg = ["gpgme"]
 config = { version = "0.15" }
 dirs = { version = "6" }
 gpgme = { version = "0.11", optional = true }
-log = { version = ">=0.3" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 thiserror = { version = "2" }
+tracing = { version = "0.1" }
 
 [dev-dependencies]
 anyhow = { version = "1" }
+test-log = { version = "0.2", default-features = false, features = ["trace"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "serde"] }

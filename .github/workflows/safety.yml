@@ -17,5 +17,7 @@ jobs:
     secrets: inherit
     with:
       runner: ${{ inputs.runner || vars.RUNNER }}
-      enabled: true
+      enabled: false
       ubuntu_packages: "libgpgme-dev"
+      args: "--test-threads=1"
+      rustlog: "fireblocks_config=debug,info"

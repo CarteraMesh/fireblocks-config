@@ -17,3 +17,5 @@ jobs:
       runner: ${{ inputs.runner || vars.RUNNER }}
       ubuntu_packages: "libgpgme-dev"
       features: '["default", "gpg"]'
+      args: "--test-threads=1"
+      rustlog: "fireblocks_config=debug,info"
