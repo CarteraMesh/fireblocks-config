@@ -219,7 +219,7 @@ impl FireblocksConfig {
 impl FireblocksConfig {
     pub fn new<P: AsRef<Path>>(cfg: P, cfg_overrides: &[P]) -> Result<Self> {
         let cfg_path = cfg.as_ref();
-        log::debug!("using config {}", cfg_path.display());
+        tracing::debug!("using config {}", cfg_path.display());
 
         let mut config_builder =
             Config::builder().add_source(File::new(&cfg_path.to_string_lossy(), FileFormat::Toml));
@@ -227,7 +227,7 @@ impl FireblocksConfig {
         // Add all override files in order
         for override_path in cfg_overrides {
             let path = override_path.as_ref();
-            log::debug!("adding config override: {}", path.display());
+            tracing::debug!("adding config override: {}", path.display());
             config_builder = config_builder
                 .add_source(File::new(&path.to_string_lossy(), FileFormat::Toml).required(true));
         }
@@ -237,7 +237,7 @@ impl FireblocksConfig {
             .add_source(config::Environment::with_prefix("FIREBLOCKS").try_parsing(true));
 
         let conf: Self = config_builder.build()?.try_deserialize()?;
-        log::trace!("loaded config {conf:#?}");
+        tracing::trace!("loaded config {conf:#?}");
         Ok(conf)
     }
 
@@ -286,14 +286,14 @@ impl FireblocksConfig {
             ));
         }
 
-        log::debug!("loading default config: {}", default_config.display());
+        tracing::debug!("loading default config: {}", default_config.display());
 
         let mut profile_configs = Vec::new();
         for profile in profiles {
             let profile_file = format!("{}.toml", profile.as_ref());
             let profile_config = fireblocks_dir.join(&profile_file);
             if profile_config.exists() {
-                log::debug!("adding profile config: {}", profile_config.display());
+                tracing::debug!("adding profile config: {}", profile_config.display());
                 profile_configs.push(profile_config);
             } else {
                 return Err(Error::ProfileConfigNotFound(profile_file));

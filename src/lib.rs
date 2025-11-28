@@ -4,10 +4,9 @@ mod error;
 pub use error::Error;
 use serde::Deserialize;
 pub type Result<T> = std::result::Result<T, error::Error>;
-use clap::ValueEnum;
 pub use config::*;
 
-#[derive(Copy, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Default)]
+#[derive(Copy, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 pub enum OutputFormat {
     #[default]
     /// Ascii Table
@@ -24,7 +23,7 @@ mod tests {
         std::{path::PathBuf, time::Duration},
     };
 
-    #[test]
+    #[test_log::test]
     fn test_signer_config_default() -> anyhow::Result<()> {
         let cfg = super::Signer::default();
         assert!(!cfg.broadcast);
@@ -33,7 +32,7 @@ mod tests {
     }
 
     #[ignore]
-    #[test]
+    #[test_log::test]
     fn test_gpg_config() -> anyhow::Result<()> {
         let b = "examples/config-gpg.toml";
         let cfg = FireblocksConfig::new(b, &[])?;
@@ -41,7 +40,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_config() -> anyhow::Result<()> {
         let b = "examples/default.toml";
         let cfg = FireblocksConfig::new(b, &[])?;
@@ -70,7 +69,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_config_override() -> anyhow::Result<()> {
         let b = "examples/default.toml";
         let cfg_override = "examples/override.toml";
@@ -87,7 +86,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_embedded_key() -> anyhow::Result<()> {
         let b = "examples/default.toml";
         let cfg_override = "examples/embedded.toml";
@@ -98,7 +97,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_duration_parsing() -> anyhow::Result<()> {
         let b = "examples/default.toml";
         let cfg = FireblocksConfig::new(b, &[])?;
@@ -110,7 +109,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_extra_config() -> anyhow::Result<()> {
         let b = "examples/default.toml";
         let cfg = FireblocksConfig::new(b, &[])?;
@@ -150,7 +149,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_duration_defaults() -> anyhow::Result<()> {
         let b = "examples/notime.toml";
         let cfg = FireblocksConfig::new(b, &[])?;
@@ -160,14 +159,14 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_tilde() -> anyhow::Result<()> {
         let expanded = format!("{}", expand_tilde("~/blah/default.toml").display());
         assert!(expanded.contains("/home"));
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn test_xdg_init() {
         // This test just ensures the XDG methods compile and can be called
         // In a real environment, it would try to load from ~/.config/fireblocks/
