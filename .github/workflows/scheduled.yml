@@ -11,4 +11,6 @@ jobs:
     uses: carteramesh/ci/.github/workflows/rust-check.yml@main
     secrets: inherit
     with:
-      runner: ${{ inputs.runner || vars.RUNNER }}
+      runner: ${{ vars.RUNNER }}
+      ubuntu_packages: "libgpgme-dev"
+      features: '["default", "gpg"]'

@@ -18,4 +18,4 @@ jobs:
     with:
       runner: ${{ inputs.runner || vars.RUNNER }}
       enabled: true
-      fireblocks: true
+      ubuntu_packages: "libgpgme-dev"

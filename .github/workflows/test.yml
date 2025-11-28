@@ -15,4 +15,5 @@ jobs:
     secrets: inherit
     with:
       runner: ${{ inputs.runner || vars.RUNNER }}
-      fireblocks: true
+      ubuntu_packages: "libgpgme-dev"
+      features: '["default", "gpg"]'
