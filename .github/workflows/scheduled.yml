@@ -8,9 +8,7 @@ name: rolling
 jobs:
   checker:
     name: Rust Checks
-    uses: carteramesh/ci/.github/workflows/rust-check.yml@main
+    uses: carteramesh/ci/.github/workflows/rust.yml@main
     secrets: inherit
     with:
       runner: ${{ vars.RUNNER }}
-      ubuntu_packages: "libgpgme-dev"
-      features: '["default", "gpg"]'
