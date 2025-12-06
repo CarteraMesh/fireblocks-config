@@ -1,0 +1,14 @@
+global:
+  rustlog: "fireblocks_config=debug,info"
+  ubuntu_packages: "libgpgme-dev"
+jobs:
+  coverage:
+    matrix:
+      features:
+        - default
+        - gpg
+  clippy:
+    matrix:
+      features:
+        - default
+        - gpg
