@@ -1,17 +1,26 @@
+name: release
 permissions:
   contents: write
   checks: write
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "version to release"
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - rc
+          - minor
+          - beta
+          - alpha
+          - major
+          - release
       runner:
         description: "Runner to use"
         required: false
-      version:
-        description: "Version to release (patch, minor, major, 0.1.xx)"
-        required: true
-        type: string
-name: release
 jobs:
   releaser:
     name: release
@@ -20,4 +29,4 @@ jobs:
     with:
       runner: ${{ vars.RUNNER }}
       version: ${{ inputs.version }}
-      ubuntu_packages: "libgpgme-dev"
+      package: "fireblocks-config"

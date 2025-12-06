@@ -1,4 +1,7 @@
-name: test
+name: verify
+permissions:
+  contents: read
+  checks: write
 on:
   push:
     branches: [main]
@@ -9,13 +12,9 @@ on:
         description: "Runner to use"
         required: false
 jobs:
-  test:
-    name: Rust Tests
-    uses: carteramesh/ci/.github/workflows/rust-test.yml@main
+  verify:
+    name: verify
+    uses: carteramesh/ci/.github/workflows/rust.yml@main
     secrets: inherit
     with:
       runner: ${{ inputs.runner || vars.RUNNER }}
-      ubuntu_packages: "libgpgme-dev"
-      features: '["default", "gpg"]'
-      args: "--test-threads=1"
-      rustlog: "fireblocks_config=debug,info"
