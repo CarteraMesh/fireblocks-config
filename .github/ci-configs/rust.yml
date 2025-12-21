@@ -1,6 +1,7 @@
 global:
   rustlog: "fireblocks_config=debug,info"
-  ubuntu_packages: "libgpgme-dev"
+  packages: 
+    Linux: "apt-get install libgpgme-dev"
 jobs:
   coverage:
     matrix:
